@@ -36,15 +36,16 @@
   let maxWindow = 0;
   const monthData = content
     .slice(1)
-    .split('\r\n')
-    .filter((line) => line[0] !== '#')
+    .split('\n')
     .map((line) => {
-      const [date, kwhData] = line.split('\t');
+      const [date, kwhData] = line.split(' ');
       const kwh = +kwhData.split(',')[0];
       if (kwh > max) max = kwh;
       const [month, year] = date.split('-');
       return { month: monthsMap.get(month), year: +year, kwh };
     });
+
+  console.log(monthData);
 
   const monthDataWindow = monthData.map((_, i) => {
     const sum = monthData
