@@ -6,6 +6,7 @@ specifiers:
   '@sveltejs/kit': ^1.0.0
   autoprefixer: ^10.4.13
   chart.js: ^4.2.0
+  chartjs-plugin-trendline: ^2.0.0
   postcss: ^8.4.21
   svelte: ^3.54.0
   svelte-chartjs: ^3.1.2
@@ -17,6 +18,7 @@ specifiers:
 
 dependencies:
   chart.js: 4.2.0
+  chartjs-plugin-trendline: 2.0.0
   svelte-chartjs: 3.1.2_sb7g7nvzgbbexijgaje6yhompe
 
 devDependencies:
@@ -568,6 +570,10 @@ packages:
     engines: {pnpm: ^7.0.0}
     dependencies:
       '@kurkle/color': 0.3.2
+    dev: false
+
+  /chartjs-plugin-trendline/2.0.0:
+    resolution: {integrity: sha512-QIQXOHM8MkcN5O2BHGZaeYGYsRs5uF8VPlpwgCknPaWMBmUT53IS7Ylu5t2Nui363f/eCdjfjHI3asqhlU8/Rw==}
     dev: false
 
   /chokidar/3.5.3:

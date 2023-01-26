@@ -1,115 +1,46 @@
 <script lang="ts">
-  import { Line } from 'svelte-chartjs';
+  import WindowChart from '../lib/WindowChart.svelte';
 
-  import {
-    Chart as ChartJS,
-    Title,
-    Tooltip,
-    Legend,
-    LineElement,
-    LinearScale,
-    PointElement,
-    CategoryScale,
-    Filler,
-  } from 'chart.js';
+  let chartData: number[] = [];
+  let title: string = '';
+  let labels: string[] = [];
+  let files: FileList;
 
-  ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale, Filler);
+  function onFileSelect() {
+    const file = files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.readAsText(file, 'UTF-8');
+    reader.onload = (data) => onFileLoad(data.target?.result);
+  }
 
-  export let data;
-  const content: string = data.content;
+  function onFileLoad(fileContent: string | ArrayBuffer | null | undefined) {
+    if (typeof fileContent !== 'string') {
+      console.log('Could not read file, (did not get string from FileReader)');
+      return;
+    }
 
-  const monthsMap = new Map();
-  monthsMap.set('jan', 1);
-  monthsMap.set('feb', 2);
-  monthsMap.set('mar', 3);
-  monthsMap.set('apr', 4);
-  monthsMap.set('maj', 5);
-  monthsMap.set('jun', 6);
-  monthsMap.set('jul', 7);
-  monthsMap.set('aug', 8);
-  monthsMap.set('sep', 9);
-  monthsMap.set('okt', 10);
-  monthsMap.set('nov', 11);
-  monthsMap.set('dec', 12);
+    parseChartData(fileContent as string);
+  }
 
-  let max = 0;
-  let maxWindow = 0;
-  const monthData = content
-    .slice(1)
-    .split('\n')
-    .map((line) => {
-      const [date, kwhData] = line.split(' ');
-      const kwh = +kwhData.split(',')[0];
-      if (kwh > max) max = kwh;
-      const [month, year] = date.split('-');
-      return { month: monthsMap.get(month), year: +year, kwh };
-    });
-
-  console.log(monthData);
-
-  const monthDataWindow = monthData.map((_, i) => {
-    const sum = monthData
-      .slice(Math.max(i - 12, 0), i + 1)
-      .map((val) => val.kwh)
-      .reduce((prev, curr) => prev + curr, 0);
-    if (sum > maxWindow) maxWindow = sum;
-    return sum;
-  });
-
-  const years = [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022];
-  const months = [
-    'Januari',
-    'Februari',
-    'Mars',
-    'April',
-    'Maj',
-    'Juni',
-    'Juli',
-    'Augusti',
-    'September',
-    'Oktober',
-    'November',
-    'December',
-  ];
-
-  const labels = years.map((year) => months.map((month) => year + ' ' + month)).flat();
-  labels.shift();
-  labels.push('2023 Januari');
-  console.log(monthDataWindow.length);
-  console.log(labels.length);
-
-  // console.log(labels.length);
-  // console.log(monthDataWindow.length);
-  // console.log(monthData);
-
-  const chartData = {
-    labels: labels,
-    datasets: [
-      {
-        label: 'Sandviksgatan 54',
-        data: monthDataWindow,
-        // fill: true,
-        // lineTension: 0.3,
-        // backgroundColor: 'rgba(225, 204,230, .3)',
-        borderColor: 'rgb(255, 130, 158)',
-        // borderCapStyle: 'butt',
-        // borderDash: [],
-        borderDashOffset: 0.0,
-        // borderJoinStyle: 'miter',
-        pointBorderColor: 'rgb(205, 130,1 58)',
-        // pointBackgroundColor: 'rgb(255, 255, 255)',
-        pointBorderWidth: 5,
-        pointHoverRadius: 5,
-        pointHoverBackgroundColor: 'rgb(0, 0, 0)',
-        // pointHoverBorderColor: 'rgba(220, 220, 220,1)',
-        pointHoverBorderWidth: 2,
-        pointRadius: 1,
-        pointHitRadius: 10,
-      },
-    ],
-  };
+  function parseChartData(data: string) {
+    const rows = data.split('\n');
+    title = rows[0];
+    const dateData = rows
+      .filter((row) => row.match(/[a-zA-Z]{3}-[0-9]{4}/gm)) //matches "abc-1234"
+      .map((row) => {
+        const [date, kwh] = row.split('\t');
+        const kwhInt = +kwh.split(',')[0];
+        return { kwh: kwhInt, date };
+      });
+    const kwhs = dateData.map((dd) => dd?.kwh);
+    const dates = dateData.map((dd) => dd?.date);
+    chartData = kwhs;
+    labels = dates;
+  }
 </script>
 
-<div class="m-8">
-  <Line data={chartData} options={{ responsive: true }} />
+<div class="flex gap-4 flex-col h-full p-8">
+  <input bind:files accept=".csv" on:change={onFileSelect} type="file" name="data" id="" />
+  <WindowChart {title} data={chartData} {labels} />
 </div>
