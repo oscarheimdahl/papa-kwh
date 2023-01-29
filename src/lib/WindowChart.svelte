@@ -15,8 +15,11 @@
     Tooltip,
   } from 'chart.js';
   import { config } from './WindowChartConfig';
+  import type { DataSet } from '../types/Chart';
 
   //
+
+  const colors = ['#CD6155', '#AF7AC5', '#5599C7', '#48C9B0', '#F4D040', '#EB984E'];
 
   Chart.register(
     Title,
@@ -31,9 +34,10 @@
     chartTrendline
   );
 
-  export let title: string = 'banan';
-  export let data: number[];
-  export let labels: string[];
+  // export let title: string = 'banan';
+  // export let data: number[];
+  // export let labels: string[];
+  export let dataSets: DataSet[];
 
   let barChartElement: HTMLCanvasElement;
   let chart: Chart;
@@ -48,19 +52,28 @@
   });
 
   afterUpdate(() => {
-    chart.data.labels = labels;
-    chart.data.datasets[0] = config;
-    chart.data.datasets[0].label = title;
-    chart.data.datasets[0].data = yearWindow(data);
-    chart.data.datasets[1] = config;
-    chart.data.datasets[1].data = yearWindow(data);
+    if (dataSets.length === 0) return;
+    showGraph = true;
+    let maxLabelLength = 0;
+    let maxLabelIndex = 0;
+    chart.data.datasets = [];
+    for (let i = 0; i < dataSets.length; i++) {
+      chart.data.datasets.push({ ...config });
+      chart.data.datasets[i].borderColor = colors[i];
+      chart.data.datasets[i].label = dataSets[i].title;
+      chart.data.datasets[i].data = yearWindow(dataSets[i].data);
+      if (dataSets[i].labels.length > maxLabelLength) {
+        maxLabelLength = dataSets[i].labels.length;
+        maxLabelIndex = i;
+      }
+    }
+    chart.data.labels = dataSets[maxLabelIndex].labels;
     chart.update();
-    showGraph = data.length > 0;
   });
 
   function yearWindow(monthData: number[]) {
     return monthData.map((_, i) => {
-      const sum = data
+      const sum = monthData
         .slice(Math.max(i - 12, 0), i + 1)
         .map((val) => val)
         .reduce((prev, curr) => prev + curr, 0);
